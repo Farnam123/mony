@@ -1,37 +1,48 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
-import os
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # حتماً تغییر بده به یه کلید قوی
+app.secret_key = 'mysecretkey'  # این را با یک کلید قوی و مخفی جایگزین کن
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 db = SQLAlchemy(app)
 
-# مدل کاربر (در آینده می‌تونی دیتابیس واقعی برای یوزرها بسازی)
-USERNAME = "admin"
-PASSWORD = "1234"
+# مدل کاربران
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+
+@app.before_first_request
+def create_tables():
+    db.create_all()
+    if not User.query.filter_by(username="admin").first():
+        user = User(username="admin", password="admin123")
+        db.session.add(user)
+        db.session.commit()
 
 @app.route('/')
-def home():
-    if 'logged_in' in session:
-        return render_template('dashboard.html')
-    return redirect(url_for('login'))
+def index():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = ''
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        if username == USERNAME and password == PASSWORD:
-            session['logged_in'] = True
-            return redirect(url_for('home'))
+        user = User.query.filter_by(username=username, password=password).first()
+        if user:
+            session['username'] = user.username
+            return redirect(url_for('index'))
         else:
-            return render_template('login.html', error='نام کاربری یا رمز عبور اشتباه است.')
-    return render_template('login.html')
+            error = 'نام کاربری یا رمز عبور نادرست است.'
+    return render_template('login.html', error=error)
 
 @app.route('/logout')
 def logout():
-    session.pop('logged_in', None)
+    session.pop('username', None)
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
