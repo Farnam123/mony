@@ -1,29 +1,27 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fa">
 <head>
-    <meta charset="UTF-8" />
-    <title>ورود - سایت حرفه‌ای</title>
-    <style>
-        body { font-family: Tahoma, sans-serif; background-color: #f9f9f9; }
-        .container { max-width: 400px; margin: 100px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px #ccc; }
-        input { width: 100%; padding: 10px; margin-top: 10px; }
-        button { width: 100%; padding: 10px; margin-top: 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; }
-        .error { color: red; }
-        a { text-decoration: none; color: #007bff; }
-    </style>
+    <meta charset="UTF-8">
+    <title>ورود</title>
 </head>
 <body>
-<div class="container">
-    <h2>ورود</h2>
-    {% if error %}
-        <p class="error">{{ error }}</p>
-    {% endif %}
+    <h2>فرم ورود</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+          {% for category, message in messages %}
+            <li style="color: red;">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
     <form method="POST">
-        <input type="text" name="username" placeholder="نام کاربری" required />
-        <input type="password" name="password" placeholder="رمز عبور" required />
+        <label>نام کاربری:</label>
+        <input type="text" name="username" required><br><br>
+        <label>رمز عبور:</label>
+        <input type="password" name="password" required><br><br>
         <button type="submit">ورود</button>
     </form>
-    <p>حساب کاربری ندارید؟ <a href="{{ url_for('register') }}">ثبت نام کنید</a></p>
-</div>
+    <p>هنوز ثبت‌نام نکرده‌اید؟ <a href="{{ url_for('register') }}">ثبت‌نام</a></p>
 </body>
 </html>
