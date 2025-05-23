@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fa">
+
+<head>
+    <meta charset="UTF-8">
+    <title>پنل تحلیل بازار | Farnam</title>
+</head>
+
+<body>
+    <header>
+        <h1>Farnam | پنل تحلیل بازار</h1>
+        {% if session.get('user_id') %}
+        <a href="{{ url_for('logout') }}">خروج</a>
+        {% endif %}
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+
+</html>
