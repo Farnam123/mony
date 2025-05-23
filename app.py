@@ -1,49 +1,60 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
+import requests
+import pandas as pd
+from ta.momentum import RSIIndicator
+from ta.trend import MACD
+from flask import Flask, render_template, request
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-db = SQLAlchemy(app)
 
-from models import User
+ALPHA_VANTAGE_API_KEY = "JqwuHOcwVqP55MYuz4O4K4pOscq2MWkf"
 
-@app.before_request
-def require_login():
-    allowed_routes = ['login', 'register']
-    if 'user_id' not in session and request.endpoint not in allowed_routes:
-        return redirect(url_for('login'))
+def get_stock_data(symbol):
+    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={ALPHA_VANTAGE_API_KEY}&outputsize=compact'
+    response = requests.get(url)
+    data = response.json()
+    if "Time Series (Daily)" not in data:
+        return None
 
-@app.route('/')
-def dashboard():
-    user = User.query.filter_by(id=session.get('user_id')).first()
-    return render_template('dashboard.html', user=user)
+    df = pd.DataFrame.from_dict(data["Time Series (Daily)"], orient='index')
+    df = df.rename(columns={
+        '1. open': 'open',
+        '2. high': 'high',
+        '3. low': 'low',
+        '4. close': 'close',
+        '5. volume': 'volume'
+    })
+    df = df.astype(float)
+    df.index = pd.to_datetime(df.index)
+    df = df.sort_index()
+    return df
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+def calculate_indicators(df):
+    df['rsi'] = RSIIndicator(df['close']).rsi()
+    macd = MACD(df['close'])
+    df['macd'] = macd.macd()
+    df['macd_signal'] = macd.macd_signal()
+    return df
+
+def generate_signal(df):
+    latest = df.iloc[-1]
+    if latest['rsi'] < 30 and latest['macd'] > latest['macd_signal']:
+        return "خرید"
+    elif latest['rsi'] > 70 and latest['macd'] < latest['macd_signal']:
+        return "فروش"
+    else:
+        return "نگهداری"
+
+@app.route('/analyze', methods=['GET', 'POST'])
+def analyze():
     if request.method == 'POST':
-        user = User.query.filter_by(username=request.form['username']).first()
-        if user and check_password_hash(user.password, request.form['password']):
-            session['user_id'] = user.id
-            return redirect(url_for('dashboard'))
-        return render_template('login.html', error='نام کاربری یا رمز اشتباه است')
-    return render_template('login.html')
+        symbol = request.form.get('symbol')
+        df = get_stock_data(symbol)
+        if df is None:
+            return render_template('analyze.html', error="نماد معتبر نیست یا داده‌ای یافت نشد.")
+        df = calculate_indicators(df)
+        signal = generate_signal(df)
+        return render_template('analyze.html', signal=signal, symbol=symbol)
+    return render_template('analyze.html')
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        hashed_password = generate_password_hash(request.form['password'], method='sha256')
-        new_user = User(username=request.form['username'], password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('login'))
-    return render_template('register.html')
-
-@app.route('/logout')
-def logout():
-    session.pop('user_id', None)
-    return redirect(url_for('login'))
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
