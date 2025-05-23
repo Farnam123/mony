@@ -1,5 +1,17 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% block title %}پنل تحلیل{% endblock %}
 {% block content %}
-<h2>خوش آمدید {{ user.username }}</h2>
-<p>اینجا پنل تحلیل بازار شماست.</p>
+<h2>پنل تحلیل بازار</h2>
+
+<form method="POST" class="mb-3">
+    <label for="symbol">نماد (مثلاً AAPL, TSLA, BTCUSDT):</label>
+    <input type="text" id="symbol" name="symbol" class="form-control" value="{{ symbol }}">
+    <button class="btn btn-primary mt-2" type="submit">بارگذاری</button>
+</form>
+
+{% if plot_html %}
+    <div>{{ plot_html | safe }}</div>
+    <h4>پیشنهاد: <span class="badge bg-info">{{ recommendation }}</span></h4>
+{% endif %}
+
 {% endblock %}
