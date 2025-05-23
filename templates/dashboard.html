@@ -1,12 +1,5 @@
-<!doctype html>
-<html lang="fa">
-<head>
-    <meta charset="UTF-8">
-    <title>پنل کاربری</title>
-</head>
-<body>
-    <h2>خوش آمدی {{ user.username }}!</h2>
-    <p>این پنل شخصی شماست.</p>
-    <a href="{{ url_for('logout') }}">خروج</a>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<h2>خوش آمدید {{ user.username }}</h2>
+<p>اینجا پنل تحلیل بازار شماست.</p>
+{% endblock %}
