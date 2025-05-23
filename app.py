@@ -3,25 +3,14 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = 'mysecretkey'  # حتما این کلید را عوض کن و محرمانه نگه دار
+app.secret_key = 'mysecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 db = SQLAlchemy(app)
 
-# مدل کاربران
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)  # رمز هش شده ذخیره می‌شود
-
-@app.before_first_request
-def create_tables():
-    db.create_all()
-    # اگر کاربر admin وجود ندارد، ایجاد می‌کنیم با رمز 'admin123'
-    if not User.query.filter_by(username="admin").first():
-        hashed_password = generate_password_hash("admin123", method='sha256')
-        user = User(username="admin", password=hashed_password)
-        db.session.add(user)
-        db.session.commit()
+    password = db.Column(db.String(200), nullable=False)
 
 @app.route('/')
 def index():
@@ -65,4 +54,11 @@ def register():
     return render_template('register.html', error=error)
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        if not User.query.filter_by(username="admin").first():
+            hashed_password = generate_password_hash("admin123", method='sha256')
+            user = User(username="admin", password=hashed_password)
+            db.session.add(user)
+            db.session.commit()
     app.run(debug=True)
