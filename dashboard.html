@@ -1,0 +1,10 @@
+<h2>داشبورد {{ username }}</h2>
+<a href="/logout">خروج</a> | <a href="/add-signal">افزودن سیگنال</a>
+<h3>سیگنال‌های شما:</h3>
+<ul>
+  {% for signal in signals %}
+    <li>{{ signal.date.strftime('%Y-%m-%d') }} | {{ signal.title }} | {{ signal.action.upper() }} | ${{ signal.price }}</li>
+  {% else %}
+    <li>هیچ سیگنالی ثبت نشده.</li>
+  {% endfor %}
+</ul>
