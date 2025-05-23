@@ -24,7 +24,6 @@ class Signal(db.Model):
     date = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-@app.before_first_request
 def create_tables():
     db.create_all()
 
@@ -89,4 +88,5 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
+    create_tables()  # اضافه شد
     app.run(debug=True)
