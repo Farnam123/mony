@@ -1,4 +1,8 @@
-Flask==2.3.2
-flask_sqlalchemy
-werkzeug
-gunicorn
+Flask
+Flask-SQLAlchemy
+Flask-WTF
+WTForms
+requests
+pandas
+ta
+plotly
