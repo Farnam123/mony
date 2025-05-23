@@ -1,12 +1,12 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="fa">
 <head>
-    <title>پنل مدیریت</title>
     <meta charset="UTF-8">
+    <title>پنل کاربری</title>
 </head>
 <body>
-    <h2>خوش آمدید به پنل مدیریت</h2>
-    <p>شما وارد شده‌اید.</p>
+    <h2>خوش آمدی {{ user.username }}!</h2>
+    <p>این پنل شخصی شماست.</p>
     <a href="{{ url_for('logout') }}">خروج</a>
 </body>
 </html>
